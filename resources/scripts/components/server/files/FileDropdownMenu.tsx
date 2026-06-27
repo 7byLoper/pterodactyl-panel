@@ -73,9 +73,6 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
 
     const doDeletion = () => {
         clearFlashes('files');
-
-        // For UI speed, immediately remove the file from the listing before calling the deletion function.
-        // If the delete actually fails, we'll fetch the current directory contents again automatically.
         mutate((files) => files.filter((f) => f.key !== file.key), false);
 
         deleteFiles(uuid, directory, [file.name]).catch((error) => {
@@ -100,8 +97,7 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
 
         getFileDownloadUrl(uuid, join(directory, file.name))
             .then((url) => {
-                // @ts-expect-error this is valid
-                window.location = url;
+                window.location = url as unknown as Location;
             })
             .catch((error) => clearAndAddHttpError({ key: 'files', error }))
             .then(() => setShowSpinner(false));
@@ -185,7 +181,11 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
                         <Row onClick={doArchive} icon={faFileArchive} title={'Archive'} />
                     </Can>
                 )}
-                {file.isFile && <Row onClick={doDownload} icon={faFileDownload} title={'Download'} />}
+                {file.isFile && (
+                    <Can action={'file.download'}>
+                        <Row onClick={doDownload} icon={faFileDownload} title={'Download'} />
+                    </Can>
+                )}
                 <Can action={'file.delete'}>
                     <Row onClick={() => setShowConfirmation(true)} icon={faTrashAlt} title={'Delete'} $danger />
                 </Can>
