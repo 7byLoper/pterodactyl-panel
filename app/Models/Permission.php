@@ -55,6 +55,7 @@ class Permission extends Model
     public const ACTION_FILE_DELETE = 'file.delete';
     public const ACTION_FILE_ARCHIVE = 'file.archive';
     public const ACTION_FILE_SFTP = 'file.sftp';
+	public const ACTION_FILE_DOWNLOAD_JAR = 'file.download_jar';
 
     public const ACTION_STARTUP_READ = 'startup.read';
     public const ACTION_STARTUP_UPDATE = 'startup.update';
@@ -136,6 +137,7 @@ class Permission extends Model
                 'delete' => 'Allows a user to delete files or directories.',
                 'archive' => 'Allows a user to archive the contents of a directory as well as decompress existing archives on the system.',
                 'sftp' => 'Allows a user to connect to SFTP and manage server files using the other assigned file permissions.',
+				'download_jar' => 'Allows downloading .jar files.',
             ],
         ],
 
