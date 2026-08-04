@@ -151,7 +151,7 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
         setTransferring(true);
         clearFlashes('files');
 
-        transferFile(uuid, join(directory, file.name), selectedTargets)
+        transferFile(uuid, join(directory, file.name), directory, selectedTargets)
             .then(() => {
                 setShowTransfer(false);
                 addFlash({
@@ -188,7 +188,7 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
                 open={showTransfer}
                 onClose={() => !transferring && setShowTransfer(false)}
                 title={'Upload to Other Servers'}
-                description={'Choose the servers that should receive this file in their root directory.'}
+                description={'Choose the servers that should receive this file in the same directory path.'}
                 preventExternalClose={transferring}
             >
                 <div css={tw`mt-6 max-h-72 overflow-y-auto space-y-2`}>

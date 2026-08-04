@@ -162,11 +162,16 @@ class FileController extends ClientApiController
         $filename = basename($request->input('file'));
 
         foreach ($targets as $target) {
-            $this->fileRepository->setServer($target)->pull($url, '/', ['filename' => $filename]);
+            $this->fileRepository->setServer($target)->pull(
+                $url,
+                $request->input('directory', '/'),
+                ['filename' => $filename]
+            );
         }
 
         Activity::event('server:file.transfer')
             ->property('file', $request->input('file'))
+            ->property('directory', $request->input('directory', '/'))
             ->property('target_servers', $targets->pluck('uuid')->all())
             ->log();
 

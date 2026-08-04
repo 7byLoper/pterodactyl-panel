@@ -8,6 +8,7 @@ class TransferFileRequest extends DownloadFileRequest
     {
         return [
             'file' => 'required|string',
+            'directory' => 'nullable|string',
             'target_servers' => 'required|array|min:1|max:100',
             'target_servers.*' => 'required|string|uuid|distinct',
         ];

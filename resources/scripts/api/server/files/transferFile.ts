@@ -12,6 +12,6 @@ export const getTransferTargets = async (uuid: string): Promise<TransferTarget[]
     return data.data || [];
 };
 
-export const transferFile = async (uuid: string, file: string, targets: string[]): Promise<void> => {
-    await http.post(`/api/client/servers/${uuid}/files/transfer`, { file, target_servers: targets });
+export const transferFile = async (uuid: string, file: string, directory: string, targets: string[]): Promise<void> => {
+    await http.post(`/api/client/servers/${uuid}/files/transfer`, { file, directory, target_servers: targets });
 };
