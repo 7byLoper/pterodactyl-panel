@@ -84,6 +84,8 @@ Route::group([
         Route::get('/list', [Client\Servers\FileController::class, 'directory']);
         Route::get('/contents', [Client\Servers\FileController::class, 'contents']);
         Route::get('/download', [Client\Servers\FileController::class, 'download']);
+        Route::get('/transfer-targets', [Client\Servers\FileController::class, 'transferTargets']);
+        Route::post('/transfer', [Client\Servers\FileController::class, 'transfer']);
         Route::put('/rename', [Client\Servers\FileController::class, 'rename']);
         Route::post('/copy', [Client\Servers\FileController::class, 'copy']);
         Route::post('/write', [Client\Servers\FileController::class, 'write']);

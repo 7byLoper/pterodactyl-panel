@@ -3,6 +3,7 @@
 namespace Pterodactyl\Http\Controllers\Api\Client\Servers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Response;
 use Pterodactyl\Enum\JwtScope;
 use Pterodactyl\Models\Server;
@@ -21,7 +22,9 @@ use Pterodactyl\Http\Requests\Api\Client\Servers\Files\RenameFileRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Files\CreateFolderRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Files\CompressFilesRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Files\DecompressFilesRequest;
+use Pterodactyl\Http\Requests\Api\Client\Servers\Files\DownloadFileRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Files\GetFileContentsRequest;
+use Pterodactyl\Http\Requests\Api\Client\Servers\Files\TransferFileRequest;
 use Pterodactyl\Http\Requests\Api\Client\Servers\Files\WriteFileContentRequest;
 
 class FileController extends ClientApiController
@@ -75,7 +78,7 @@ class FileController extends ClientApiController
      *
      * @throws \Throwable
      */
-    public function download(GetFileContentsRequest $request, Server $server): array
+    public function download(DownloadFileRequest $request, Server $server): array
     {
         $token = $this->jwtService
             ->setExpiresAt(CarbonImmutable::now()->addMinutes(15))
@@ -99,6 +102,74 @@ class FileController extends ClientApiController
                 ),
             ],
         ];
+    }
+
+    /**
+     * Lists servers to which the current user can upload a transferred file.
+     */
+    public function transferTargets(\Illuminate\Http\Request $request, Server $server): array
+    {
+        $user = $request->user();
+        $query = $user->root_admin ? Server::query() : $user->accessibleServers();
+
+        $targets = $query
+            ->with('subusers')
+            ->where('servers.id', '!=', $server->id)
+            ->orderBy('servers.name')
+            ->get()
+            ->filter(fn (Server $target) => $user->can(Permission::ACTION_FILE_CREATE, $target))
+            ->values()
+            ->map(fn (Server $target) => [
+                'uuid' => $target->uuid,
+                'name' => $target->name,
+                'identifier' => $target->identifier,
+            ]);
+
+        return ['data' => $targets];
+    }
+
+    /**
+     * Makes the selected Wings instances download the file directly from its source node.
+     *
+     * @throws \Throwable
+     */
+    public function transfer(TransferFileRequest $request, Server $server): JsonResponse
+    {
+        $user = $request->user();
+        $targets = Server::query()
+            ->with('subusers')
+            ->whereIn('uuid', $request->input('target_servers'))
+            ->where('id', '!=', $server->id)
+            ->get();
+
+        if ($targets->count() !== count($request->input('target_servers'))
+            || $targets->contains(fn (Server $target) => !$user->can(Permission::ACTION_FILE_CREATE, $target))) {
+            throw new AuthorizationException();
+        }
+
+        $token = $this->jwtService
+            ->setExpiresAt(CarbonImmutable::now()->addMinutes(15))
+            ->setUser($user)
+            ->setClaims([
+                'file_path' => rawurldecode($request->input('file')),
+                'server_uuid' => $server->uuid,
+            ])
+            ->setScopes(JwtScope::FileDownload)
+            ->handle($server->node, $user->id . $server->uuid);
+
+        $url = sprintf('%s/download/file?token=%s', $server->node->getConnectionAddress(), $token->toString());
+        $filename = basename($request->input('file'));
+
+        foreach ($targets as $target) {
+            $this->fileRepository->setServer($target)->pull($url, '/', ['filename' => $filename]);
+        }
+
+        Activity::event('server:file.transfer')
+            ->property('file', $request->input('file'))
+            ->property('target_servers', $targets->pluck('uuid')->all())
+            ->log();
+
+        return new JsonResponse([], Response::HTTP_NO_CONTENT);
     }
 
     /**
