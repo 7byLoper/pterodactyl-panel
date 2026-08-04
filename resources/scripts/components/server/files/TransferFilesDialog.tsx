@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import tw from 'twin.macro';
+import styled from 'styled-components/macro';
 import { join } from 'pathe';
 import Input from '@/components/elements/Input';
 import { Button } from '@/components/elements/button/index';
@@ -23,6 +24,28 @@ interface Props {
     onClose: () => void;
     items: TransferItem[];
 }
+
+const TargetRow = styled.label<{ $selected: boolean }>`
+    ${tw`flex cursor-pointer items-center px-3 py-3 text-neutral-100 transition-colors`};
+    background-color: ${(props) =>
+        props.$selected ? 'color-mix(in srgb, var(--primary) 24%, var(--input))' : 'var(--input)'};
+    border-radius: var(--borderradius);
+
+    &:hover {
+        background-color: color-mix(in srgb, var(--primary) 18%, var(--input));
+    }
+`;
+
+const TargetCheckbox = styled(Input)`
+    ${tw`mr-3 h-5 w-5 rounded-md`};
+    border: none;
+    background-color: color-mix(in srgb, var(--primary) 12%, var(--secondary));
+
+    &:checked {
+        background-color: var(--primary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+    }
+`;
 
 export default ({ open, onClose, items }: Props) => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
@@ -100,20 +123,23 @@ export default ({ open, onClose, items }: Props) => {
                 {loadingTargets ? (
                     <p css={tw`text-sm text-neutral-300`}>Loading available servers...</p>
                 ) : targets.length ? (
-                    targets.map((target) => (
-                        <label
+                    targets.map((target) => {
+                        const selected = selectedTargets.includes(target.uuid);
+
+                        return (
+                        <TargetRow
                             key={target.uuid}
-                            css={tw`flex items-center cursor-pointer rounded bg-neutral-700 hover:bg-neutral-600 p-3`}
+                            $selected={selected}
                         >
-                            <Input
+                            <TargetCheckbox
                                 type={'checkbox'}
-                                checked={selectedTargets.includes(target.uuid)}
+                                checked={selected}
                                 onChange={() => toggleTarget(target.uuid)}
-                                css={tw`mr-3`}
                             />
                             <span css={tw`text-sm text-neutral-100`}>{target.name}</span>
-                        </label>
-                    ))
+                        </TargetRow>
+                        );
+                    })
                 ) : (
                     <p css={tw`text-sm text-neutral-300`}>No servers are available for this transfer.</p>
                 )}

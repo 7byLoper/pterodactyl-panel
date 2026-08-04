@@ -153,8 +153,7 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
                 ref={onClickRef}
                 renderToggle={(onClick) => (
                     <div
-                        css={tw`flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-neutral-300 transition-colors hover:text-white`}
-                        style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 12%, transparent)' }}
+                        css={tw`inline-flex cursor-pointer items-center px-2 py-1 text-neutral-300 transition-colors hover:text-white`}
                         onClick={onClick}
                         title={'File actions'}
                     >
