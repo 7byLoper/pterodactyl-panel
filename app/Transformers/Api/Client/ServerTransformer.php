@@ -51,6 +51,8 @@ class ServerTransformer extends BaseClientTransformer
             'name' => $server->name,
             'node' => $server->node->name,
             'is_node_under_maintenance' => $server->node->isUnderMaintenance(),
+            'nest_id' => $server->nest_id,
+            'egg_id' => $server->egg_id,
             'sftp_details' => [
                 'ip' => $server->node->fqdn,
                 'port' => $server->node->daemonSFTP,
