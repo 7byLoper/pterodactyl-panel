@@ -113,12 +113,14 @@ class FileController extends ClientApiController
         $user = $request->user();
         $query = $user->root_admin ? Server::query() : $user->accessibleServers();
 
+        $requiresArchive = $request->boolean('requires_archive');
         $targets = $query
             ->with('subusers')
             ->where('servers.id', '!=', $server->id)
             ->orderBy('servers.name')
             ->get()
-            ->filter(fn (Server $target) => $user->can(Permission::ACTION_FILE_CREATE, $target))
+            ->filter(fn (Server $target) => $user->can(Permission::ACTION_FILE_CREATE, $target)
+                && (!$requiresArchive || $user->can(Permission::ACTION_FILE_ARCHIVE, $target)))
             ->values()
             ->map(fn (Server $target) => [
                 'uuid' => $target->uuid,
@@ -143,35 +145,63 @@ class FileController extends ClientApiController
             ->where('id', '!=', $server->id)
             ->get();
 
-        if ($targets->count() !== count($request->input('target_servers'))
-            || $targets->contains(fn (Server $target) => !$user->can(Permission::ACTION_FILE_CREATE, $target))) {
+        $files = $request->input('files');
+        $containsDirectories = collect($files)->contains('is_directory', true);
+
+        if (($containsDirectories && !$user->can(Permission::ACTION_FILE_ARCHIVE, $server))
+            || $targets->count() !== count($request->input('target_servers'))
+            || $targets->contains(fn (Server $target) => !$user->can(Permission::ACTION_FILE_CREATE, $target)
+                || ($containsDirectories && !$user->can(Permission::ACTION_FILE_ARCHIVE, $target)))) {
             throw new AuthorizationException();
         }
 
-        $token = $this->jwtService
-            ->setExpiresAt(CarbonImmutable::now()->addMinutes(15))
-            ->setUser($user)
-            ->setClaims([
-                'file_path' => rawurldecode($request->input('file')),
-                'server_uuid' => $server->uuid,
-            ])
-            ->setScopes(JwtScope::FileDownload)
-            ->handle($server->node, $user->id . $server->uuid);
+        foreach ($files as $file) {
+            $directory = $file['directory'] ?? '/';
+            $sourcePath = $file['file'];
+            $filename = basename($sourcePath);
+            $temporaryArchive = null;
 
-        $url = sprintf('%s/download/file?token=%s', $server->node->getConnectionAddress(), $token->toString());
-        $filename = basename($request->input('file'));
+            if ($file['is_directory']) {
+                $archive = $this->fileRepository->setServer($server)->compressFiles($directory, [$filename]);
+                $temporaryArchive = $archive['name'];
+                $sourcePath = rtrim($directory, '/') . '/' . $temporaryArchive;
+                $filename = $temporaryArchive;
+            }
 
-        foreach ($targets as $target) {
-            $this->fileRepository->setServer($target)->pull(
-                $url,
-                $request->input('directory', '/'),
-                ['filename' => $filename]
-            );
+            try {
+                $token = $this->jwtService
+                    ->setExpiresAt(CarbonImmutable::now()->addMinutes(15))
+                    ->setUser($user)
+                    ->setClaims([
+                        'file_path' => rawurldecode($sourcePath),
+                        'server_uuid' => $server->uuid,
+                    ])
+                    ->setScopes(JwtScope::FileDownload)
+                    ->handle($server->node, $user->id . $server->uuid);
+
+                $url = sprintf('%s/download/file?token=%s', $server->node->getConnectionAddress(), $token->toString());
+
+                foreach ($targets as $target) {
+                    $repository = $this->fileRepository->setServer($target);
+                    $repository->pull($url, $directory, [
+                        'filename' => $filename,
+                        'foreground' => $file['is_directory'],
+                    ]);
+
+                    if ($file['is_directory']) {
+                        $repository->decompressFile($directory, $filename);
+                        $repository->deleteFiles($directory, [$filename]);
+                    }
+                }
+            } finally {
+                if ($temporaryArchive) {
+                    $this->fileRepository->setServer($server)->deleteFiles($directory, [$temporaryArchive]);
+                }
+            }
         }
 
         Activity::event('server:file.transfer')
-            ->property('file', $request->input('file'))
-            ->property('directory', $request->input('directory', '/'))
+            ->property('files', $files)
             ->property('target_servers', $targets->pluck('uuid')->all())
             ->log();
 

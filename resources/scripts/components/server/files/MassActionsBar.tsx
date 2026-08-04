@@ -11,20 +11,29 @@ import deleteFiles from '@/api/server/files/deleteFiles';
 import RenameFileModal from '@/components/server/files/RenameFileModal';
 import Portal from '@/components/elements/Portal';
 import { Dialog } from '@/components/elements/dialog';
+import Can from '@/components/elements/Can';
+import TransferFilesDialog, { TransferItem } from '@/components/server/files/TransferFilesDialog';
+import { FileObject } from '@/api/server/files/loadDirectory';
 
 const MassActionsBar = () => {
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
 
-    const { mutate } = useFileManagerSwr();
+    const { data: directoryFiles, mutate } = useFileManagerSwr();
     const { clearFlashes, clearAndAddHttpError } = useFlash();
     const [loading, setLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [showConfirm, setShowConfirm] = useState(false);
     const [showMove, setShowMove] = useState(false);
+    const [showTransfer, setShowTransfer] = useState(false);
     const directory = ServerContext.useStoreState((state) => state.files.directory);
 
     const selectedFiles = ServerContext.useStoreState((state) => state.files.selectedFiles);
     const setSelectedFiles = ServerContext.useStoreActions((actions) => actions.files.setSelectedFiles);
+
+    const transferItems: TransferItem[] = selectedFiles
+        .map((name) => directoryFiles?.find((file) => file.name === name))
+        .filter((file): file is FileObject => !!file)
+        .map((file) => ({ name: file.name, isDirectory: !file.isFile }));
 
     useEffect(() => {
         if (!loading) setLoadingMessage('');
@@ -92,12 +101,26 @@ const MassActionsBar = () => {
                         onDismissed={() => setShowMove(false)}
                     />
                 )}
+                <TransferFilesDialog
+                    open={showTransfer}
+                    onClose={() => setShowTransfer(false)}
+                    items={transferItems}
+                />
                 <Portal>
                     <div className={'pointer-events-none fixed bottom-0 mb-6 flex justify-center w-full z-50'}>
                         <Fade timeout={75} in={selectedFiles.length > 0} unmountOnExit>
                             <div css={tw`flex items-center space-x-4 pointer-events-auto rounded p-4 bg-black/50`}>
                                 <Button onClick={() => setShowMove(true)}>Move</Button>
                                 <Button onClick={onClickCompress}>Archive</Button>
+                                <Can
+                                    action={
+                                        transferItems.some((item) => item.isDirectory)
+                                            ? ['file.download', 'file.archive']
+                                            : 'file.download'
+                                    }
+                                >
+                                    <Button onClick={() => setShowTransfer(true)}>Upload</Button>
+                                </Can>
                                 <Button.Danger variant={Button.Variants.Secondary} onClick={() => setShowConfirm(true)}>
                                     Delete
                                 </Button.Danger>

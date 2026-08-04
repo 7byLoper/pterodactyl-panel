@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faBoxOpen,
@@ -33,9 +33,7 @@ import decompressFiles from '@/api/server/files/decompressFiles';
 import isEqual from 'react-fast-compare';
 import ChmodFileModal from '@/components/server/files/ChmodFileModal';
 import { Dialog } from '@/components/elements/dialog';
-import Input from '@/components/elements/Input';
-import { Button } from '@/components/elements/button/index';
-import { getTransferTargets, transferFile, TransferTarget } from '@/api/server/files/transferFile';
+import TransferFilesDialog from '@/components/server/files/TransferFilesDialog';
 
 type ModalType = 'rename' | 'move' | 'chmod';
 
@@ -64,28 +62,11 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
     const [modal, setModal] = useState<ModalType | null>(null);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [showTransfer, setShowTransfer] = useState(false);
-    const [transferTargets, setTransferTargets] = useState<TransferTarget[]>([]);
-    const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
-    const [loadingTargets, setLoadingTargets] = useState(false);
-    const [transferring, setTransferring] = useState(false);
 
     const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
     const { mutate } = useFileManagerSwr();
-    const { addFlash, clearAndAddHttpError, clearFlashes } = useFlash();
+    const { clearAndAddHttpError, clearFlashes } = useFlash();
     const directory = ServerContext.useStoreState((state) => state.files.directory);
-
-    useEffect(() => {
-        if (!showTransfer) return;
-
-        setLoadingTargets(true);
-        setSelectedTargets([]);
-        clearFlashes('files');
-
-        getTransferTargets(uuid)
-            .then(setTransferTargets)
-            .catch((error) => clearAndAddHttpError({ key: 'files', error }))
-            .then(() => setLoadingTargets(false));
-    }, [showTransfer]);
 
     useEventListener(`pterodactyl:files:ctx:${file.key}`, (e: CustomEvent) => {
         if (onClickRef.current) {
@@ -145,33 +126,6 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
             .then(() => setShowSpinner(false));
     };
 
-    const doTransfer = () => {
-        if (!selectedTargets.length) return;
-
-        setTransferring(true);
-        clearFlashes('files');
-
-        transferFile(uuid, join(directory, file.name), directory, selectedTargets)
-            .then(() => {
-                setShowTransfer(false);
-                addFlash({
-                    key: 'files',
-                    type: 'success',
-                    message: `The file is being uploaded to ${selectedTargets.length} server${
-                        selectedTargets.length === 1 ? '' : 's'
-                    }.`,
-                });
-            })
-            .catch((error) => clearAndAddHttpError({ key: 'files', error }))
-            .then(() => setTransferring(false));
-    };
-
-    const toggleTarget = (target: string) => {
-        setSelectedTargets((current) =>
-            current.includes(target) ? current.filter((uuid) => uuid !== target) : [...current, target]
-        );
-    };
-
     return (
         <>
             <Dialog.Confirm
@@ -184,44 +138,11 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
                 You will not be able to recover the contents of&nbsp;
                 <span className={'font-semibold text-gray-50'}>{file.name}</span> once deleted.
             </Dialog.Confirm>
-            <Dialog
+            <TransferFilesDialog
                 open={showTransfer}
-                onClose={() => !transferring && setShowTransfer(false)}
-                title={'Upload to Other Servers'}
-                description={'Choose the servers that should receive this file in the same directory path.'}
-                preventExternalClose={transferring}
-            >
-                <div css={tw`mt-6 max-h-72 overflow-y-auto space-y-2`}>
-                    {loadingTargets ? (
-                        <p css={tw`text-sm text-neutral-300`}>Loading available servers...</p>
-                    ) : transferTargets.length ? (
-                        transferTargets.map((target) => (
-                            <label
-                                key={target.uuid}
-                                css={tw`flex items-center cursor-pointer rounded bg-neutral-700 hover:bg-neutral-600 p-3`}
-                            >
-                                <Input
-                                    type={'checkbox'}
-                                    checked={selectedTargets.includes(target.uuid)}
-                                    onChange={() => toggleTarget(target.uuid)}
-                                    css={tw`mr-3`}
-                                />
-                                <span css={tw`text-sm text-neutral-100`}>{target.name}</span>
-                            </label>
-                        ))
-                    ) : (
-                        <p css={tw`text-sm text-neutral-300`}>No servers are available for file uploads.</p>
-                    )}
-                </div>
-                <Dialog.Footer>
-                    <Button.Text disabled={transferring} onClick={() => setShowTransfer(false)}>
-                        Cancel
-                    </Button.Text>
-                    <Button disabled={loadingTargets || !selectedTargets.length || transferring} onClick={doTransfer}>
-                        {transferring ? 'Uploading...' : 'Upload'}
-                    </Button>
-                </Dialog.Footer>
-            </Dialog>
+                onClose={() => setShowTransfer(false)}
+                items={[{ name: file.name, isDirectory: !file.isFile }]}
+            />
             <DropdownMenu
                 ref={onClickRef}
                 renderToggle={(onClick) => (
@@ -268,12 +189,16 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
                         <Row onClick={doArchive} icon={faFileArchive} title={'Archive'} />
                     </Can>
                 )}
-                {file.isFile && (
-                    <Can action={'file.download'}>
-                        <Row onClick={doDownload} icon={faFileDownload} title={'Download'} />
+                <Can action={'file.download'}>
+                    {file.isFile && <Row onClick={doDownload} icon={faFileDownload} title={'Download'} />}
+                    {file.isFile ? (
                         <Row onClick={() => setShowTransfer(true)} icon={faFileUpload} title={'Upload to Other Servers'} />
-                    </Can>
-                )}
+                    ) : (
+                        <Can action={'file.archive'}>
+                            <Row onClick={() => setShowTransfer(true)} icon={faFileUpload} title={'Upload to Other Servers'} />
+                        </Can>
+                    )}
+                </Can>
                 <Can action={'file.delete'}>
                     <Row onClick={() => setShowConfirmation(true)} icon={faTrashAlt} title={'Delete'} $danger />
                 </Can>

@@ -288,11 +288,18 @@ class DaemonFileRepository extends DaemonRepository
         ];
 
         try {
+            $options = [
+                'json' => array_filter($attributes, fn ($value) => !is_null($value)),
+            ];
+
+            // Pulling an archive for a directory transfer must finish before it can be unpacked.
+            if ($params['foreground'] ?? false) {
+                $options['timeout'] = 60 * 15;
+            }
+
             return $this->getHttpClient()->post(
                 sprintf('/api/servers/%s/files/pull', $this->server->uuid),
-                [
-                    'json' => array_filter($attributes, fn ($value) => !is_null($value)),
-                ]
+                $options
             );
         } catch (TransferException $exception) {
             throw new DaemonConnectionException($exception);
