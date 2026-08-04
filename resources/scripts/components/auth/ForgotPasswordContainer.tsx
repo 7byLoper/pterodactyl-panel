@@ -12,6 +12,7 @@ import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
 import Reaptcha from 'reaptcha';
 import useFlash from '@/plugins/useFlash';
+import * as Lang from '@/lang';
 
 interface Values {
     email: string;
@@ -74,7 +75,6 @@ export default () => {
             {({ isSubmitting, setSubmitting, submitForm }) => (
                 <LoginFormContainer title={'Request Password Reset'} css={tw`w-full flex`}>
                     <Field
-                        light
                         label={'Email'}
                         description={
                             'Enter your account email address to receive instructions on resetting your password.'
@@ -107,7 +107,7 @@ export default () => {
                             to={'/auth/login'}
                             css={tw`text-xs text-neutral-500 tracking-wide uppercase no-underline hover:text-neutral-700`}
                         >
-                            Return to Login
+                            {Lang.ReturnToLogin}
                         </Link>
                     </div>
                 </LoginFormContainer>

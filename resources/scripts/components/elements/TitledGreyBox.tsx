@@ -3,6 +3,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import tw from 'twin.macro';
 import isEqual from 'react-fast-compare';
+import styled from 'styled-components/macro';
+
+const Box = styled.div`
+& {
+    background-color: var(--secondary);
+    border-radius:10px;
+}
+& > div {
+    background-color: var(--secondary);
+    border-radius:10px;
+}
+`;
 
 interface Props {
     icon?: IconProp;
@@ -12,8 +24,8 @@ interface Props {
 }
 
 const TitledGreyBox = ({ icon, title, children, className }: Props) => (
-    <div css={tw`rounded shadow-md bg-neutral-700`} className={className}>
-        <div css={tw`bg-neutral-900 rounded-t p-3 border-b border-black`}>
+    <Box className={className}>
+        <div css={tw`py-4 px-5 border-b border-black`}>
             {typeof title === 'string' ? (
                 <p css={tw`text-sm uppercase`}>
                     {icon && <FontAwesomeIcon icon={icon} css={tw`mr-2 text-neutral-300`} />}
@@ -23,8 +35,8 @@ const TitledGreyBox = ({ icon, title, children, className }: Props) => (
                 title
             )}
         </div>
-        <div css={tw`p-3`}>{children}</div>
-    </div>
+        <div css={tw`py-4 px-5`}>{children}</div>
+    </Box>
 );
 
 export default memo(TitledGreyBox, isEqual);

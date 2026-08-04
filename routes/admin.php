@@ -76,6 +76,23 @@ Route::group(['prefix' => 'settings'], function () {
     Route::patch('/advanced', [Admin\Settings\AdvancedController::class, 'update']);
 });
 
+Route::group(['prefix' => 'theme'], function () {
+    Route::get('/', [Admin\Theme\ThemeController::class, 'index'])->name('admin.theme');
+    Route::post('/update', [Admin\Theme\ThemeController::class, 'update'])->name('admin.theme.update');
+    Route::get('/meta', [Admin\Theme\MetaController::class, 'index'])->name('admin.theme.meta');
+    Route::post('/meta/update', [Admin\Theme\MetaController::class, 'update'])->name('admin.theme.meta.update');
+    Route::get('/color', [Admin\Theme\ColorController::class, 'index'])->name('admin.theme.color');
+    Route::post('/color/update', [Admin\Theme\ColorController::class, 'update'])->name('admin.theme.color.update');
+    Route::get('/button', [Admin\Theme\ButtonController::class, 'index'])->name('admin.theme.button');
+    Route::post('/button/update', [Admin\Theme\ButtonController::class, 'update'])->name('admin.theme.button.update');
+    Route::get('/element', [Admin\Theme\ElementController::class, 'index'])->name('admin.theme.element');
+    Route::post('/element/update', [Admin\Theme\ElementController::class, 'update'])->name('admin.theme.element.update');
+    Route::get('/alert', [Admin\Theme\AlertController::class, 'index'])->name('admin.theme.alert');
+    Route::post('/alert/update', [Admin\Theme\AlertController::class, 'update'])->name('admin.theme.alert.update');
+    Route::get('/media', [Admin\Theme\SocialController::class, 'index'])->name('admin.theme.social');
+    Route::post('/media/update', [Admin\Theme\SocialController::class, 'update'])->name('admin.theme.social.update');
+});
+
 /*
 |--------------------------------------------------------------------------
 | User Controller Routes

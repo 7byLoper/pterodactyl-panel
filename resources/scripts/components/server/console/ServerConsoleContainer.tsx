@@ -1,15 +1,28 @@
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { ServerContext } from '@/state/server';
-import Can from '@/components/elements/Can';
+import ContentContainer from '@/components/elements/ContentContainer';
+import tw from 'twin.macro';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import isEqual from 'react-fast-compare';
 import Spinner from '@/components/elements/Spinner';
 import Features from '@feature/Features';
 import Console from '@/components/server/console/Console';
 import StatGraphs from '@/components/server/console/StatGraphs';
-import PowerButtons from '@/components/server/console/PowerButtons';
 import ServerDetailsBlock from '@/components/server/console/ServerDetailsBlock';
+import TopElement from '@/components/server/console/TopElement';
+import SideGraph from '@/components/server/console/SideGraph';
 import { Alert } from '@/components/elements/alert';
+import styled  from 'styled-components/macro'; 
+import { Server_is_transferred, Server_is_installing, Node_is_maintenance } from '@/lang';
+
+const SideGraphDiv = styled.div`
+    ${tw`w-full lg:pr-4`}
+    display:var(--sidegraph);
+    
+    @media (min-width: 1024px){
+        max-width:25%;
+    }
+`;
 
 export type PowerAction = 'start' | 'stop' | 'restart' | 'kill';
 
@@ -23,40 +36,33 @@ const ServerConsoleContainer = () => {
 
     return (
         <ServerContentBlock title={'Console'}>
-            {(isNodeUnderMaintenance || isInstalling || isTransferring) && (
-                <Alert type={'warning'} className={'mb-4'}>
-                    {isNodeUnderMaintenance
-                        ? 'The node of this server is currently under maintenance and all actions are unavailable.'
-                        : isInstalling
-                        ? 'This server is currently running its installation process and most actions are unavailable.'
-                        : 'This server is currently being transferred to another node and all actions are unavailable.'}
-                </Alert>
-            )}
-            <div className={'grid grid-cols-4 gap-4 mb-4'}>
-                <div className={'hidden sm:block sm:col-span-2 lg:col-span-3 pr-4'}>
-                    <h1 className={'font-header font-medium text-2xl text-gray-50 leading-relaxed line-clamp-1'}>
-                        {name}
-                    </h1>
-                    <p className={'text-sm line-clamp-2'}>{description}</p>
-                </div>
-                <div className={'col-span-4 sm:col-span-2 lg:col-span-1 self-end'}>
-                    <Can action={['control.start', 'control.stop', 'control.restart']} matchAny>
-                        <PowerButtons className={'flex sm:justify-end space-x-2'} />
-                    </Can>
-                </div>
+            <div css='display:var(--infoelement) !important;'>
+                <TopElement/>   
             </div>
-            <div className={'grid grid-cols-4 gap-2 sm:gap-4 mb-4'}>
-                <div className={'flex col-span-4 lg:col-span-3'}>
+            <div css='display:var(--graphcard) !important;'>
+                <ServerDetailsBlock/>
+            </div>
+            <div className={'flex flex-wrap lg:flex-nowrap'}>
+                <SideGraphDiv>
+                    <SideGraph/>
+                </SideGraphDiv>
+                <div className={'w-full mt-4 lg:mt-0'}>
                     <Spinner.Suspense>
                         <Console />
                     </Spinner.Suspense>
+                    {(isNodeUnderMaintenance || isInstalling || isTransferring) && (
+                        <Alert type={'warning'} className='mt-3'>
+                            {isNodeUnderMaintenance
+                                ? `${Node_is_maintenance}`
+                                : isInstalling
+                                ? `${Server_is_installing}`
+                                : `${Server_is_transferred}`}
+                        </Alert>
+                    )}
+                    <div className={'grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4'}>
+                        <StatGraphs />
+                    </div>
                 </div>
-                <ServerDetailsBlock className={'col-span-4 lg:col-span-1 order-last lg:order-none'} />
-            </div>
-            <div className={'grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4'}>
-                <Spinner.Suspense>
-                    <StatGraphs />
-                </Spinner.Suspense>
             </div>
             <Features enabled={eggFeatures} />
         </ServerContentBlock>

@@ -19,6 +19,7 @@ import Label from '@/components/elements/Label';
 import Input from '@/components/elements/Input';
 import GreyRowBox from '@/components/elements/GreyRowBox';
 import CopyOnClick from '@/components/elements/CopyOnClick';
+import { Delete_database, Cancel } from '@/lang'
 
 interface Props {
     database: ServerDatabase;
@@ -33,7 +34,7 @@ export default ({ database, className }: Props) => {
 
     const appendDatabase = ServerContext.useStoreActions((actions) => actions.databases.appendDatabase);
     const removeDatabase = ServerContext.useStoreActions((actions) => actions.databases.removeDatabase);
-
+    
     const jdbcConnectionString = `jdbc:mysql://${database.username}${
         database.password ? `:${encodeURIComponent(database.password)}` : ''
     }@${database.connectionString}/${database.name}`;
@@ -87,10 +88,10 @@ export default ({ database, className }: Props) => {
                             />
                             <div css={tw`mt-6 text-right`}>
                                 <Button type={'button'} isSecondary css={tw`mr-2`} onClick={() => setVisible(false)}>
-                                    Cancel
+                                    {Cancel}
                                 </Button>
                                 <Button type={'submit'} color={'red'} disabled={!isValid}>
-                                    Delete Database
+                                    {Delete_database}
                                 </Button>
                             </div>
                         </Form>
@@ -119,14 +120,14 @@ export default ({ database, className }: Props) => {
                 <Can action={'database.view_password'}>
                     <div css={tw`mt-6`}>
                         <Label>Password</Label>
-                        <CopyOnClick text={database.password} showInNotification={false}>
+                        <CopyOnClick text={database.password}>
                             <Input type={'text'} readOnly value={database.password} />
                         </CopyOnClick>
                     </div>
                 </Can>
                 <div css={tw`mt-6`}>
                     <Label>JDBC Connection String</Label>
-                    <CopyOnClick text={jdbcConnectionString} showInNotification={false}>
+                    <CopyOnClick text={jdbcConnectionString}>
                         <Input type={'text'} readOnly value={jdbcConnectionString} />
                     </CopyOnClick>
                 </div>

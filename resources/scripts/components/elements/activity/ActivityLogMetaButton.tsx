@@ -23,7 +23,7 @@ export default ({ meta }: { meta: Record<string, unknown> }) => {
             <button
                 aria-describedby={'View additional event metadata'}
                 className={
-                    'p-2 transition-colors duration-100 text-gray-400 group-hover:text-gray-300 group-hover:hover:text-gray-50'
+                    'p-2 transition-colors duration-100 text-neutral-400 group-hover:text-neutral-300 group-hover:hover:text-neutral-50'
                 }
                 onClick={() => setOpen(true)}
             >

@@ -7,6 +7,7 @@ import { httpErrorToHuman } from '@/api/http';
 import { Button } from '@/components/elements/button/index';
 import { Dialog } from '@/components/elements/dialog';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
+import { Delete } from '@/lang';
 
 interface Props {
     scheduleId: number;
@@ -53,7 +54,7 @@ export default ({ scheduleId, onDeleted }: Props) => {
                 className={'flex-1 sm:flex-none mr-4 border-transparent'}
                 onClick={() => setVisible(true)}
             >
-                Delete
+                {Delete}
             </Button.Danger>
         </>
     );

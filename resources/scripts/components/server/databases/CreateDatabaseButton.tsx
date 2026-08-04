@@ -10,6 +10,7 @@ import FlashMessageRender from '@/components/FlashMessageRender';
 import useFlash from '@/plugins/useFlash';
 import Button from '@/components/elements/Button';
 import tw from 'twin.macro';
+import { Create_database, Cancel } from '@/lang'
 
 interface Values {
     databaseName: string;
@@ -96,10 +97,10 @@ export default () => {
                                     css={tw`w-full sm:w-auto sm:mr-2`}
                                     onClick={() => setVisible(false)}
                                 >
-                                    Cancel
+                                    {Cancel}
                                 </Button>
                                 <Button css={tw`w-full mt-4 sm:w-auto sm:mt-0`} type={'submit'}>
-                                    Create Database
+                                    {Create_database}
                                 </Button>
                             </div>
                         </Form>

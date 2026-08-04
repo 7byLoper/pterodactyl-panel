@@ -11,15 +11,19 @@ interface Props {
 }
 
 const ButtonStyle = styled.button<Omit<Props, 'isLoading'>>`
-    ${tw`relative inline-block rounded p-2 uppercase tracking-wide text-sm transition-all duration-150 border`};
+    ${tw`relative inline-block p-2 uppercase tracking-wide text-sm transition-all duration-150 border`};
+    border-radius:var(--borderradius);
 
     ${(props) =>
         ((!props.isSecondary && !props.color) || props.color === 'primary') &&
         css<Props>`
-            ${(props) => !props.isSecondary && tw`bg-primary-500 border-primary-600 border text-primary-50`};
+            ${(props) => !props.isSecondary && tw`text-neutral-50`};
+            border:none;
+            background-color:var(--primary);
+            border-radius:var(--borderradius);
 
             &:hover:not(:disabled) {
-                ${tw`bg-primary-600 border-primary-700`};
+                background-color:var(--primary-hover);
             }
         `};
 
@@ -54,10 +58,13 @@ const ButtonStyle = styled.button<Omit<Props, 'isLoading'>>`
     ${(props) =>
         props.color === 'red' &&
         css<Props>`
-            ${tw`border-red-600 bg-red-500 text-red-50`};
+            ${tw`text-red-50`};
+            background-color:var(--danger);
+            border:none;
 
             &:hover:not(:disabled) {
                 ${tw`bg-red-600 border-red-700`};
+                background-color:var(--danger-hover);
             }
 
             ${(props) =>

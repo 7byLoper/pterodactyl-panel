@@ -1,6 +1,6 @@
 .button {
     @apply px-4 py-2 inline-flex items-center justify-center;
-    @apply rounded text-base font-semibold transition-all duration-100;
+    @apply rounded text-base transition-all duration-100;
     @apply focus:ring-[3px] focus:ring-offset-2 focus:ring-offset-gray-700 focus:ring-opacity-50;
 
     /* Sizing Controls */
@@ -34,40 +34,85 @@
 }
 
 .primary {
-    @apply bg-blue-600 text-blue-50;
-    @apply hover:bg-blue-500 active:bg-blue-500 focus:ring-blue-400 focus:ring-opacity-75;
+    @apply text-white;
+    background-color:var(--primary);
+    border-radius:var(--borderradius);
+
+    &:hover{
+        background-color:var(--primary-hover);
+    }
+    &:active{
+        background-color:var(--primary-hover);
+    }
 
     &.secondary {
-        @apply hover:bg-blue-600 active:bg-blue-600;
+        &:hover{
+            background-color:var(--primary);
+        }
+        &:active{
+            background-color:var(--primary);
+        }
     }
 
     &:disabled {
-        @apply bg-blue-500/75 text-blue-200/75;
+        @apply opacity-75;
     }
 }
 
 .text {
-    @apply bg-gray-500 text-gray-50;
-    @apply hover:bg-gray-400 active:bg-gray-400 focus:ring-gray-300 focus:ring-opacity-50;
+    @apply text-gray-50;
+    @apply focus:ring-gray-300 focus:ring-opacity-50;
+    background-color:var(--text);
+    border-radius:var(--borderradius);
+
+    &:hover{
+        background-color:var(--text-hover);
+    }
+    &:active{
+        background-color:var(--text-hover);
+    }
 
     &.secondary {
-        @apply hover:bg-gray-500 active:bg-gray-500;
+        @apply text-neutral-50 hover:text-gray-50;
+
+        &:hover{
+            background-color:var(--text);
+        }
+        &:active{
+            background-color:var(--text);
+        }
     }
 
     &:disabled {
-        @apply bg-gray-500/75 text-gray-200/75;
+        @apply opacity-75;
     }
 }
 
 .danger {
-    @apply bg-red-600 text-gray-50;
-    @apply hover:bg-red-500 active:bg-red-500 focus:ring-red-400 focus:ring-opacity-75;
+    @apply text-white;
+    @apply focus:ring-red-400 focus:ring-opacity-75;
+    background-color:var(--danger);
+    border-radius:var(--borderradius);
+
+    &:hover{
+        background-color:var(--danger-hover);
+    }
+    &:active{
+        background-color:var(--danger-hover);
+    }
 
     &.secondary {
-        @apply hover:bg-red-600 active:bg-red-600;
+        @apply hover:text-white text-neutral-50;
+
+        &:hover{
+            background-color:var(--danger);
+        }
+        &:active{
+            background-color:var(--danger);
+        }
     }
 
     &:disabled {
-        @apply bg-red-600/75 text-red-50/75;
+        @apply opacity-75;
     }
 }

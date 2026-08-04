@@ -4,6 +4,7 @@ namespace Pterodactyl\Http\Controllers\Api\Client;
 
 use Pterodactyl\Models\Server;
 use Pterodactyl\Models\Permission;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use Pterodactyl\Models\Filters\MultiFieldServerFilter;
@@ -77,5 +78,13 @@ class ClientController extends ClientApiController
                 'permissions' => Permission::permissions(),
             ],
         ];
+    }
+
+    /**
+     * Returns the active Stellar theme configuration for the client UI.
+     */
+    public function theme(): array
+    {
+        return ['data' => DB::table('theme')->first()];
     }
 }

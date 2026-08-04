@@ -19,19 +19,14 @@
 }
 
 .terminal {
-    @apply flex flex-col w-full;
-
-    & .overflows_container {
-        @apply -ml-4 sm:ml-0;
-        width: calc(100% + 2rem);
-
-        @screen sm {
-            @apply w-full;
-        }
-    }
+    @apply relative flex flex-col;
+    border-radius: 10px;
+    overflow: hidden;
+    padding:15px;
+    background-color:rgba(19, 26, 32);
 
     & > .container {
-        @apply rounded-t p-1 sm:p-2 bg-black min-h-[16rem] flex-1 font-mono text-sm;
+        @apply rounded-t sm:p-2 bg-black min-h-[16rem] flex-1 font-mono text-sm;
 
         & #terminal {
             @apply h-full;
@@ -51,13 +46,23 @@
     }
 
     & .command_input {
-        @apply relative bg-gray-900 px-2 text-gray-100 pl-10 pr-4 py-2 w-full font-mono text-sm sm:rounded-b;
-        @apply focus:ring-0 outline-none focus-visible:outline-none;
-        @apply border-0 border-b-2 border-transparent transition-colors duration-100;
-        @apply active:border-cyan-500 focus:border-cyan-500;
+        @apply flex pr-2;
+        background-color:var(--input);
+        border-radius: var(--borderradius);
+
+        & input{
+            @apply relative px-2 text-gray-100 pl-10 pr-4 w-full font-mono text-sm sm:rounded-b; 
+            @apply focus:ring-0 outline-none focus-visible:outline-none;
+            @apply border-0 border-b-2 border-transparent transition-colors duration-100;
+            background-color:transparent;
+            height: 100%;
+        }
     }
 }
 
 .chart_container {
-    @apply bg-gray-600 rounded shadow-lg pt-2 border-b-4 border-gray-700 relative;
+    @apply shadow-lg pt-2 relative;
+    background-color:var(--secondary);
+    border-radius:15px;
+    margin-top: 20px;
 }

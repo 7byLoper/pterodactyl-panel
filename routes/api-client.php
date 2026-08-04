@@ -18,6 +18,7 @@ use Pterodactyl\Http\Middleware\Api\Client\Server\AuthenticateServerAccess;
 |
 */
 Route::get('/', [Client\ClientController::class, 'index'])->name('api:client.index');
+Route::get('/theme', [Client\ClientController::class, 'theme']);
 Route::get('/permissions', [Client\ClientController::class, 'permissions']);
 
 Route::prefix('/account')->middleware(AccountSubject::class)->group(function () {

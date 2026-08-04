@@ -10,6 +10,7 @@ import getServerBackups, { Context as ServerBackupContext } from '@/api/swr/getS
 import { ServerContext } from '@/state/server';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import Pagination from '@/components/elements/Pagination';
+import { Back_a_page, No_backups, Cant_made } from '@/lang';
 
 const BackupContainer = () => {
     const { page, setPage } = useContext(ServerBackupContext);
@@ -43,8 +44,8 @@ const BackupContainer = () => {
                         !backupLimit ? null : (
                             <p css={tw`text-center text-sm text-neutral-300`}>
                                 {page > 1
-                                    ? "Looks like we've run out of backups to show you, try going back a page."
-                                    : 'It looks like there are no backups currently stored for this server.'}
+                                    ? `${Back_a_page}`
+                                    : `${No_backups}`}
                             </p>
                         )
                     ) : (
@@ -56,7 +57,7 @@ const BackupContainer = () => {
             </Pagination>
             {backupLimit === 0 && (
                 <p css={tw`text-center text-sm text-neutral-300`}>
-                    Backups cannot be created for this server because the backup limit is set to 0.
+                    {Cant_made}
                 </p>
             )}
             <Can action={'backup.create'}>

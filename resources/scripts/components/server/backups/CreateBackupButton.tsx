@@ -14,6 +14,7 @@ import getServerBackups from '@/api/swr/getServerBackups';
 import { ServerContext } from '@/state/server';
 import FormikSwitch from '@/components/elements/FormikSwitch';
 import Can from '@/components/elements/Can';
+import { Create_backups } from '@/lang';
 
 interface Values {
     name: string;
@@ -109,7 +110,7 @@ export default () => {
                 </Formik>
             )}
             <Button css={tw`w-full sm:w-auto`} onClick={() => setVisible(true)}>
-                Create backup
+                {Create_backups}
             </Button>
         </>
     );

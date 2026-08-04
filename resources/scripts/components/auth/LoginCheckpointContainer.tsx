@@ -10,6 +10,7 @@ import { FlashStore } from '@/state/flashes';
 import Field from '@/components/elements/Field';
 import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
+import * as Lang from '@/lang';
 
 interface Values {
     code: string;
@@ -27,10 +28,9 @@ const LoginCheckpointContainer = () => {
     const [isMissingDevice, setIsMissingDevice] = useState(false);
 
     return (
-        <LoginFormContainer title={'Device Checkpoint'} css={tw`w-full flex`}>
+        <LoginFormContainer title={Lang.DeviceCheckpoint} css={tw`w-full flex`}>
             <div css={tw`mt-6`}>
                 <Field
-                    light
                     name={isMissingDevice ? 'recoveryCode' : 'code'}
                     title={isMissingDevice ? 'Recovery Code' : 'Authentication Code'}
                     description={
@@ -45,7 +45,7 @@ const LoginCheckpointContainer = () => {
             </div>
             <div css={tw`mt-6`}>
                 <Button size={'xlarge'} type={'submit'} disabled={isSubmitting} isLoading={isSubmitting}>
-                    Continue
+                    {Lang.Continue}
                 </Button>
             </div>
             <div css={tw`mt-6 text-center`}>
@@ -65,7 +65,7 @@ const LoginCheckpointContainer = () => {
                     to={'/auth/login'}
                     css={tw`text-xs text-neutral-500 tracking-wide uppercase no-underline hover:text-neutral-700`}
                 >
-                    Return to Login
+                    {Lang.ReturnToLogin}
                 </Link>
             </div>
         </LoginFormContainer>

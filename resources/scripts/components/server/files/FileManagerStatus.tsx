@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ServerContext } from '@/state/server';
 import { CloudUploadIcon, XIcon } from '@heroicons/react/solid';
 import asDialog from '@/hoc/asDialog';
@@ -47,7 +47,7 @@ const FileUploadList = () => {
                             <Spinner progress={(file.loaded / file.total) * 100} className={'w-6 h-6'} />
                         </div>
                     </Tooltip>
-                    <Code className={'flex-1 truncate'}>{name}</Code>
+                     <Code className={'flex-1 truncate'}>{name}</Code>
                     <button
                         onClick={cancelFileUpload.bind(this, name)}
                         className={'text-gray-500 hover:text-gray-200 transition-colors duration-75'}
@@ -76,7 +76,7 @@ export default () => {
 
     const count = ServerContext.useStoreState((state) => Object.keys(state.files.uploads).length);
     const progress = ServerContext.useStoreState((state) => ({
-        uploaded: Object.values(state.files.uploads).reduce((count, file) => count + file.loaded, 0),
+       uploaded: Object.values(state.files.uploads).reduce((count, file) => count + file.loaded, 0),
         total: Object.values(state.files.uploads).reduce((count, file) => count + file.total, 0),
     }));
 

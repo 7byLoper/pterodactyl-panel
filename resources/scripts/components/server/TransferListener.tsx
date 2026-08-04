@@ -7,7 +7,7 @@ const TransferListener = () => {
     const getServer = ServerContext.useStoreActions((actions) => actions.server.getServer);
     const setServerFromState = ServerContext.useStoreActions((actions) => actions.server.setServerFromState);
 
-    // Listen for the transfer status event, so we can update the state of the server.
+    // Listen for the transfer status event so we can update the state of the server.
     useWebsocketEvent(SocketEvent.TRANSFER_STATUS, (status: string) => {
         if (status === 'pending' || status === 'processing') {
             setServerFromState((s) => ({ ...s, isTransferring: true }));

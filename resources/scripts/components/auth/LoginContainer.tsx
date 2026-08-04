@@ -10,6 +10,7 @@ import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
 import Reaptcha from 'reaptcha';
 import useFlash from '@/plugins/useFlash';
+import * as Lang from '@/lang';
 
 interface Values {
     username: string;
@@ -74,14 +75,14 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             })}
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
-                <LoginFormContainer title={'Login to Continue'} css={tw`w-full flex`}>
-                    <Field light type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
+                <LoginFormContainer title={Lang.LogintoContinue} css={tw`w-full flex`}>
+                    <Field type={'text'} label={Lang.UsernameorEmail} name={'username'} disabled={isSubmitting} />
                     <div css={tw`mt-6`}>
-                        <Field light type={'password'} label={'Password'} name={'password'} disabled={isSubmitting} />
+                        <Field type={'password'} label={Lang.Password} name={'password'} disabled={isSubmitting} />
                     </div>
                     <div css={tw`mt-6`}>
                         <Button type={'submit'} size={'xlarge'} isLoading={isSubmitting} disabled={isSubmitting}>
-                            Login
+                            {Lang.Login}
                         </Button>
                     </div>
                     {recaptchaEnabled && (
@@ -104,7 +105,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                             to={'/auth/password'}
                             css={tw`text-xs text-neutral-500 tracking-wide no-underline uppercase hover:text-neutral-600`}
                         >
-                            Forgot password?
+                            {Lang.ForgotPassword}
                         </Link>
                     </div>
                 </LoginFormContainer>

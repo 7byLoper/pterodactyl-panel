@@ -44,14 +44,14 @@ const options: ChartOptions<'line'> = {
             min: 0,
             type: 'linear',
             grid: {
-                display: true,
-                color: theme('colors.gray.700'),
+                display: false,
+                color: 'gray',
                 drawBorder: false,
             },
             ticks: {
-                display: true,
+                display: false,
                 count: 3,
-                color: theme('colors.gray.200'),
+                color: 'gray',
                 font: {
                     family: theme('fontFamily.sans'),
                     size: 11,
@@ -91,8 +91,8 @@ function getEmptyData(label: string, sets = 1, callback?: ChartDatasetCallback |
                         fill: true,
                         label,
                         data: Array(20).fill(-5),
-                        borderColor: theme('colors.cyan.400'),
-                        backgroundColor: hexToRgba(theme('colors.cyan.700'), 0.5),
+                        borderColor: '#3B6CDE',
+                        backgroundColor: 'rgb(59, 108, 222, .5)',
                     },
                     index
                 )

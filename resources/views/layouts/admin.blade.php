@@ -1,3 +1,8 @@
+{{-- Pterodactyl - Panel --}}
+{{-- Copyright (c) 2015 - 2017 Dane Everitt <dane@daneeveritt.com> --}}
+
+{{-- This software is licensed under the terms of the MIT license. --}}
+{{-- https://opensource.org/licenses/MIT --}}
 <!DOCTYPE html>
 <html>
     <head>
@@ -80,6 +85,11 @@
                                 <i class="fa fa-wrench"></i> <span>Settings</span>
                             </a>
                         </li>
+                        <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.theme') ?: 'active' }}">
+                            <a href="{{ route('admin.theme')}}">
+                                <i class="fa fa-edit"></i> <span>Theme</span>
+                            </a>
+                        </li>
                         <li class="{{ ! starts_with(Route::currentRouteName(), 'admin.api') ?: 'active' }}">
                             <a href="{{ route('admin.api.index')}}">
                                 <i class="fa fa-gamepad"></i> <span>Application API</span>
@@ -145,7 +155,7 @@
                             @foreach (Alert::getMessages() as $type => $messages)
                                 @foreach ($messages as $message)
                                     <div class="alert alert-{{ $type }} alert-dismissable" role="alert">
-                                        {{ $message }}
+                                        {!! $message !!}
                                     </div>
                                 @endforeach
                             @endforeach

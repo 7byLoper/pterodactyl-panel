@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import getFileContents from '@/api/server/files/getFileContents';
 import { httpErrorToHuman } from '@/api/http';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
@@ -18,10 +18,23 @@ import useFlash from '@/plugins/useFlash';
 import { ServerContext } from '@/state/server';
 import ErrorBoundary from '@/components/elements/ErrorBoundary';
 import { encodePathSegments, hashToPath } from '@/helpers';
-import { dirname } from 'pathe';
+import { dirname } from 'path';
 import CodemirrorEditor from '@/components/elements/CodemirrorEditor';
+import styled from 'styled-components/macro';
+import { Save_content, Create_file } from '@/lang';
 
-const getNewFileDraftKey = (uuid: string, directory: string) => `pterodactyl:new-file:${uuid}:${directory}`;
+const FileManager = styled.div`
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    width:100%;
+    flex-wrap:wrapper;
+    background-color:var(--secondary);
+    border-radius:10px;
+    padding:1rem 2rem;
+    margin-bottom:1rem;
+`;
 
 export default () => {
     const [error, setError] = useState('');
@@ -39,80 +52,46 @@ export default () => {
     const setDirectory = ServerContext.useStoreActions((actions) => actions.files.setDirectory);
     const { addError, clearFlashes } = useFlash();
 
-    const filePath = hashToPath(hash);
-    const directory = action === 'new' ? filePath : dirname(filePath);
-    const draftKey = action === 'new' ? getNewFileDraftKey(uuid, directory) : undefined;
-    const saveDraft = useCallback(
-        (value: string) => {
-            if (!draftKey) return;
-
-            if (value.length > 0) {
-                sessionStorage.setItem(draftKey, value);
-            } else {
-                sessionStorage.removeItem(draftKey);
-            }
-        },
-        [draftKey]
-    );
-
     let fetchFileContent: null | (() => Promise<string>) = null;
-
-    useEffect(() => {
-        setDirectory(directory);
-    }, [directory, setDirectory]);
-
-    useEffect(() => {
-        if (!draftKey) return;
-
-        setContent(sessionStorage.getItem(draftKey) || '');
-    }, [draftKey]);
 
     useEffect(() => {
         if (action === 'new') return;
 
         setError('');
         setLoading(true);
-        getFileContents(uuid, filePath)
+        const path = hashToPath(hash);
+        setDirectory(dirname(path));
+        getFileContents(uuid, path)
             .then(setContent)
             .catch((error) => {
                 console.error(error);
                 setError(httpErrorToHuman(error));
             })
             .then(() => setLoading(false));
-    }, [action, uuid, filePath]);
+    }, [action, uuid, hash]);
 
-    const save = async (name?: string) => {
+    const save = (name?: string) => {
         if (!fetchFileContent) {
             return;
         }
 
         setLoading(true);
         clearFlashes('files:view');
-
-        let redirecting = false;
-
-        try {
-            const content = await fetchFileContent();
-
-            await saveFileContents(uuid, name || filePath, content);
-
-            if (name) {
-                if (draftKey) {
-                    sessionStorage.removeItem(draftKey);
+        fetchFileContent()
+            .then((content) => saveFileContents(uuid, name || hashToPath(hash), content))
+            .then(() => {
+                if (name) {
+                    history.push(`/server/${id}/files/edit#/${encodePathSegments(name)}`);
+                    return;
                 }
 
-                history.push(`/server/${id}/files/edit#/${encodePathSegments(name)}`);
-                redirecting = true;
-                return;
-            }
-        } catch (error) {
-            console.error(error);
-            addError({ message: httpErrorToHuman(error), key: 'files:view' });
-        } finally {
-            if (!redirecting) {
-                setLoading(false);
-            }
-        }
+                return Promise.resolve();
+            })
+            .catch((error) => {
+                console.error(error);
+                addError({ message: httpErrorToHuman(error), key: 'files:view' });
+            })
+            .then(() => setLoading(false));
     };
 
     if (error) {
@@ -122,11 +101,38 @@ export default () => {
     return (
         <PageContentBlock>
             <FlashMessageRender byKey={'files:view'} css={tw`mb-4`} />
-            <ErrorBoundary>
-                <div css={tw`mb-4`}>
-                    <FileManagerBreadcrumbs withinFileEditor isNewFile={action !== 'edit'} />
+            <FileManager css={tw`flex justify-between mb-4`}>
+                <ErrorBoundary>
+                    <div>
+                        <FileManagerBreadcrumbs withinFileEditor isNewFile={action !== 'edit'} />
+                    </div>
+                </ErrorBoundary>
+                
+                <div css={tw`flex justify-end`}>
+                    <div css={tw`flex-1 sm:flex-none rounded mr-4`}>
+                        <Select value={mode} onChange={(e) => setMode(e.currentTarget.value)}>
+                            {modes.map((mode) => (
+                                <option key={`${mode.name}_${mode.mime}`} value={mode.mime}>
+                                    {mode.name}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
+                    {action === 'edit' ? (
+                        <Can action={'file.update'}>
+                            <Button css={tw`flex-1 sm:flex-none`} onClick={() => save()}>
+                                {Save_content}
+                            </Button>
+                        </Can>
+                    ) : (
+                        <Can action={'file.create'}>
+                            <Button css={tw`flex-1 sm:flex-none`} onClick={() => setModalVisible(true)}>
+                                {Create_file}
+                            </Button>
+                        </Can>
+                    )}
                 </div>
-            </ErrorBoundary>
+            </FileManager>
             {hash.replace(/^#/, '').endsWith('.pteroignore') && (
                 <div css={tw`mb-4 p-4 border-l-4 bg-neutral-900 rounded border-cyan-400`}>
                     <p css={tw`text-neutral-300 text-sm`}>
@@ -163,32 +169,7 @@ export default () => {
                             save();
                         }
                     }}
-                    onContentChanged={action === 'new' ? saveDraft : undefined}
                 />
-            </div>
-            <div css={tw`flex justify-end mt-4`}>
-                <div css={tw`flex-1 sm:flex-none rounded bg-neutral-900 mr-4`}>
-                    <Select value={mode} onChange={(e) => setMode(e.currentTarget.value)}>
-                        {modes.map((mode) => (
-                            <option key={`${mode.name}_${mode.mime}`} value={mode.mime}>
-                                {mode.name}
-                            </option>
-                        ))}
-                    </Select>
-                </div>
-                {action === 'edit' ? (
-                    <Can action={'file.update'}>
-                        <Button css={tw`flex-1 sm:flex-none`} onClick={() => save()}>
-                            Save Content
-                        </Button>
-                    </Can>
-                ) : (
-                    <Can action={'file.create'}>
-                        <Button css={tw`flex-1 sm:flex-none`} onClick={() => setModalVisible(true)}>
-                            Create File
-                        </Button>
-                    </Can>
-                )}
             </div>
         </PageContentBlock>
     );

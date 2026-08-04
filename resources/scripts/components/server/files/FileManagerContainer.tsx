@@ -13,8 +13,8 @@ import tw from 'twin.macro';
 import { Button } from '@/components/elements/button/index';
 import { ServerContext } from '@/state/server';
 import useFileManagerSwr from '@/plugins/useFileManagerSwr';
-import FileManagerStatus from '@/components/server/files/FileManagerStatus';
 import MassActionsBar from '@/components/server/files/MassActionsBar';
+import FileManagerStatus from '@/components/server/files/FileManagerStatus';
 import UploadButton from '@/components/server/files/UploadButton';
 import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import { useStoreActions } from '@/state/hooks';
@@ -22,6 +22,16 @@ import ErrorBoundary from '@/components/elements/ErrorBoundary';
 import { FileActionCheckbox } from '@/components/server/files/SelectFileCheckbox';
 import { hashToPath } from '@/helpers';
 import style from './style.module.css';
+import styled from 'styled-components/macro';
+import { New_file, Seems_empty, Limited_to_250 } from '@/lang';
+
+const FileManager = styled.div`
+    width:100%;
+    background-color:var(--secondary);
+    border-radius:10px;
+    padding:1rem 2rem;
+    margin-bottom:1rem;
+`;
 
 const sortFiles = (files: FileObject[]): FileObject[] => {
     const sortedFiles: FileObject[] = files
@@ -61,44 +71,42 @@ export default () => {
 
     return (
         <ServerContentBlock title={'File Manager'} showFlashKey={'files'}>
-            <ErrorBoundary>
-                <div className={'flex flex-wrap-reverse md:flex-nowrap mb-4'}>
-                    <FileManagerBreadcrumbs
-                        renderLeft={
-                            <FileActionCheckbox
-                                type={'checkbox'}
-                                css={tw`mx-4`}
-                                checked={selectedFilesLength === (files?.length === 0 ? -1 : files?.length)}
-                                onChange={onSelectAllClick}
-                            />
-                        }
-                    />
-                    <Can action={'file.create'}>
-                        <div className={style.manager_actions}>
-                            <FileManagerStatus />
-                            <NewDirectoryButton />
-                            <UploadButton />
-                            <NavLink to={`/server/${id}/files/new${window.location.hash}`}>
-                                <Button>New File</Button>
-                            </NavLink>
-                        </div>
-                    </Can>
-                </div>
-            </ErrorBoundary>
+            <FileManager>
+                <ErrorBoundary>
+                    <div className={'flex flex-wrap-reverse md:flex-nowrap items-center'}>
+                        <FileActionCheckbox
+                            type={'checkbox'}
+                            css={tw`mr-4`}
+                            checked={selectedFilesLength === (files?.length === 0 ? -1 : files?.length)}
+                            onChange={onSelectAllClick}
+                        />
+                        <FileManagerBreadcrumbs/>
+                        <Can action={'file.create'}>
+                            <div className={style.manager_actions}>
+                                <FileManagerStatus />
+                                <NewDirectoryButton />
+                                <UploadButton />
+                                <NavLink to={`/server/${id}/files/new${window.location.hash}`}>
+                                    <Button>{New_file}</Button>
+                                </NavLink>
+                            </div>
+                        </Can>
+                    </div>
+                </ErrorBoundary>
+            </FileManager>
             {!files ? (
                 <Spinner size={'large'} centered />
             ) : (
                 <>
                     {!files.length ? (
-                        <p css={tw`text-sm text-neutral-400 text-center`}>This directory seems to be empty.</p>
+                        <p css={tw`text-sm text-neutral-400 text-center`}>{Seems_empty}</p>
                     ) : (
                         <CSSTransition classNames={'fade'} timeout={150} appear in>
                             <div>
                                 {files.length > 250 && (
                                     <div css={tw`rounded bg-yellow-400 mb-px p-3`}>
                                         <p css={tw`text-yellow-900 text-sm text-center`}>
-                                            This directory is too large to display in the browser, limiting the output
-                                            to the first 250 files.
+                                            {Limited_to_250}
                                         </p>
                                     </div>
                                 )}

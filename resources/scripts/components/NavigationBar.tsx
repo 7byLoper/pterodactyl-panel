@@ -1,92 +1,113 @@
 import * as React from 'react';
-import { useState } from 'react';
+import * as Icon from 'react-feather';
 import { Link, NavLink } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCogs, faLayerGroup, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { useStoreState } from 'easy-peasy';
 import { ApplicationStore } from '@/state';
-import SearchContainer from '@/components/dashboard/search/SearchContainer';
 import tw, { theme } from 'twin.macro';
 import styled from 'styled-components/macro';
+import Can from '@/components/elements/Can';
 import http from '@/api/http';
 import SpinnerOverlay from '@/components/elements/SpinnerOverlay';
-import Tooltip from '@/components/elements/tooltip/Tooltip';
-import Avatar from '@/components/Avatar';
-
-const RightNavigation = styled.div`
-    & > a,
-    & > button,
-    & > .navigation-link {
-        ${tw`flex items-center h-full no-underline text-neutral-300 px-6 cursor-pointer transition-all duration-150`};
-
-        &:active,
-        &:hover {
-            ${tw`text-neutral-100 bg-black`};
-        }
-
-        &:active,
-        &:hover,
-        &.active {
-            box-shadow: inset 0 -2px ${theme`colors.cyan.600`.toString()};
-        }
-    }
-`;
+import DarkModeToggler from '@/components/elements/custom/DarkModeToggler';
+import SocialButtons from '@/components/elements/custom/SocialButtons';
+import NavigationBar from '@/components/elements/custom/NavigationBar';
+import CollapseBtn from '@/components/elements/custom/CollapseBtn';
+import { ServerContext } from '@/state/server';
+import { useState, useEffect } from 'react';
+import getTheme from '@/api/getThemeData';
+import * as Lang from '@/lang';
 
 export default () => {
     const name = useStoreState((state: ApplicationStore) => state.settings.data!.name);
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data!.rootAdmin);
-    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [ isLoggingOut, setIsLoggingOut ] = useState(false);
 
     const onTriggerLogout = () => {
         setIsLoggingOut(true);
         http.post('/auth/logout').finally(() => {
-            // @ts-expect-error this is valid
+            // @ts-ignore
             window.location = '/';
         });
     };
 
+    const [themeData, setThemeData] = useState();
+    
+    useEffect(() => {
+        async function getThemeData() {
+            const data = await getTheme();
+            setThemeData(data.logo);
+        }
+        getThemeData();
+    }, []);
+
+
     return (
-        <div className={'w-full bg-neutral-900 shadow-md overflow-x-auto'}>
+        <NavigationBar>
             <SpinnerOverlay visible={isLoggingOut} />
-            <div className={'mx-auto w-full flex items-center h-[3.5rem] max-w-[1200px]'}>
-                <div id={'logo'} className={'flex-1'}>
-                    <Link
-                        to={'/'}
-                        className={
-                            'text-2xl font-header font-medium px-4 no-underline text-neutral-200 hover:text-neutral-100 transition-colors duration-150'
-                        }
-                    >
-                        {name}
+            <div css={tw`w-full`}>
+                <div id={'logo'}>
+                    <Link to={'/'}>
+                        <img src={themeData} />
+                        <span>{name}</span>
                     </Link>
+                    <div className='collapseBtn'>
+                        <CollapseBtn/>
+                    </div>
                 </div>
-                <RightNavigation className={'flex h-full items-center justify-center'}>
-                    <SearchContainer />
-                    <Tooltip placement={'bottom'} content={'Dashboard'}>
-                        <NavLink to={'/'} exact>
-                            <FontAwesomeIcon icon={faLayerGroup} />
-                        </NavLink>
-                    </Tooltip>
-                    {rootAdmin && (
-                        <Tooltip placement={'bottom'} content={'Admin'}>
-                            <a href={'/admin'} rel={'noreferrer'}>
-                                <FontAwesomeIcon icon={faCogs} />
-                            </a>
-                        </Tooltip>
+                    <NavLink to={'/account'} exact>
+                        <div className='icon'>
+                            <Icon.User size={20}/>
+                        </div>
+                        <span>{Lang.Account}</span>
+                    </NavLink>
+                    <NavLink to={'/'} exact className='last'>
+                        <div className='icon'>
+                            <Icon.Layers size={20}/>
+                        </div>
+                        <span>{Lang.Servers}</span>
+                    </NavLink>
+                    {location.pathname.startsWith('/account') && (
+                        <>
+                            <span className='subTitle'>ACCOUNT SETTINGS</span>
+                            <NavLink to={'/account/api'} exact>
+                                <div className='icon'>
+                                    <Icon.Code size={20}/>
+                                </div>
+                                <span>{Lang.Apicredentials}</span>
+                            </NavLink>
+                            <NavLink to={'/account/ssh'} exact>
+                                <div className='icon'>
+                                    <Icon.Key size={20}/>
+                                </div>
+                                <span>{Lang.SSHkey}</span>
+                            </NavLink>
+                            <NavLink to={'/account/activity'} className='last' exact>
+                                <div className='icon'>
+                                    <Icon.Eye size={20}/>
+                                </div>
+                                <span>{Lang.Activity}</span>
+                            </NavLink>
+                        </>
                     )}
-                    <Tooltip placement={'bottom'} content={'Account Settings'}>
-                        <NavLink to={'/account'}>
-                            <span className={'flex items-center w-5 h-5'}>
-                                <Avatar.User />
-                            </span>
-                        </NavLink>
-                    </Tooltip>
-                    <Tooltip placement={'bottom'} content={'Sign Out'}>
+                    <div className='media'>
+                        <SocialButtons/>
+                    </div>
+                    <div className='logOut'>
+                        <DarkModeToggler/>
+                        {rootAdmin &&
+                        <a href={'/admin'} rel={'noreferrer'}>
+                            <div className='icon'>
+                                <Icon.Settings size={20}/>
+                            </div>
+                        </a>
+                        }
                         <button onClick={onTriggerLogout}>
-                            <FontAwesomeIcon icon={faSignOutAlt} />
+                            <div className='icon'>
+                                <Icon.LogOut size={20}/>
+                            </div>
                         </button>
-                    </Tooltip>
-                </RightNavigation>
+                    </div>
             </div>
-        </div>
+        </NavigationBar>
     );
 };
