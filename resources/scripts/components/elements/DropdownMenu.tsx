@@ -9,12 +9,23 @@ interface Props {
 }
 
 export const DropdownButtonRow = styled.button<{ danger?: boolean }>`
-    ${tw`p-2 flex items-center rounded w-full text-neutral-500`};
+    ${tw`flex w-full items-center rounded-md px-3 py-2 text-sm text-neutral-200`};
     transition: 150ms all ease;
 
     &:hover {
-        ${(props) => (props.danger ? tw`text-red-700 bg-red-100` : tw`text-neutral-700 bg-neutral-100`)};
+        ${(props) =>
+            props.danger
+                ? 'background-color: rgba(239, 68, 68, 0.18); color: #fca5a5;'
+                : 'background-color: color-mix(in srgb, var(--primary) 22%, transparent); color: #ffffff;'};
     }
+`;
+
+const Menu = styled.div`
+    width: 13rem;
+    background-color: var(--secondary);
+    border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent);
+    border-radius: 0.75rem;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
 `;
 
 interface State {
@@ -87,17 +98,16 @@ class DropdownMenu extends React.PureComponent<Props, State> {
             <div>
                 {this.props.renderToggle(this.onClickHandler)}
                 <Fade timeout={150} in={this.state.visible} unmountOnExit>
-                    <div
+                    <Menu
                         ref={this.menu}
                         onClick={(e) => {
                             e.stopPropagation();
                             this.setState({ visible: false });
                         }}
-                        style={{ width: '12rem' }}
-                        css={tw`absolute bg-white p-2 rounded border border-neutral-700 shadow-lg text-neutral-500 z-50`}
+                        css={tw`absolute z-50 p-1.5 text-neutral-200`}
                     >
                         {this.props.children}
-                    </div>
+                    </Menu>
                 </Fade>
             </div>
         );

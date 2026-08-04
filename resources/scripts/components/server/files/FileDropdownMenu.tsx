@@ -38,9 +38,15 @@ import TransferFilesDialog from '@/components/server/files/TransferFilesDialog';
 type ModalType = 'rename' | 'move' | 'chmod';
 
 const StyledRow = styled.div<{ $danger?: boolean }>`
-    ${tw`p-2 flex items-center rounded`};
-    ${(props) =>
-        props.$danger ? tw`hover:bg-red-100 hover:text-red-700` : tw`hover:bg-neutral-100 hover:text-neutral-700`};
+    ${tw`flex cursor-pointer items-center rounded-md px-3 py-2 text-sm text-neutral-200`};
+    transition: background-color 150ms ease, color 150ms ease;
+
+    &:hover {
+        ${(props) =>
+            props.$danger
+                ? 'background-color: rgba(239, 68, 68, 0.18); color: #fca5a5;'
+                : 'background-color: color-mix(in srgb, var(--primary) 22%, transparent); color: #ffffff;'};
+    }
 `;
 
 interface RowProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -146,7 +152,12 @@ const FileDropdownMenu = ({ file }: { file: FileObject }) => {
             <DropdownMenu
                 ref={onClickRef}
                 renderToggle={(onClick) => (
-                    <div css={tw`px-4 py-2 hover:text-white`} onClick={onClick}>
+                    <div
+                        css={tw`flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-neutral-300 transition-colors hover:text-white`}
+                        style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 12%, transparent)' }}
+                        onClick={onClick}
+                        title={'File actions'}
+                    >
                         <FontAwesomeIcon icon={faEllipsisH} />
                         {modal ? (
                             modal === 'chmod' ? (
