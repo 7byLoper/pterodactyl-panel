@@ -185,7 +185,9 @@ class FileController extends ClientApiController
                     $repository = $this->fileRepository->setServer($target);
                     $repository->pull($url, $directory, [
                         'filename' => $filename,
-                        'foreground' => $file['is_directory'],
+                        // Waiting for Wings makes connection and download failures visible to the user.
+                        // Background pulls otherwise return success before a remote node has fetched the file.
+                        'foreground' => true,
                     ]);
 
                     if ($file['is_directory']) {
