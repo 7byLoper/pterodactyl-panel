@@ -169,19 +169,20 @@ class FileController extends ClientApiController
             }
 
             try {
-                $token = $this->jwtService
-                    ->setExpiresAt(CarbonImmutable::now()->addMinutes(15))
-                    ->setUser($user)
-                    ->setClaims([
-                        'file_path' => rawurldecode($sourcePath),
-                        'server_uuid' => $server->uuid,
-                    ])
-                    ->setScopes(JwtScope::FileDownload)
-                    ->handle($server->node, $user->id . $server->uuid);
-
-                $url = sprintf('%s/download/file?token=%s', $server->node->getConnectionAddress(), $token->toString());
-
                 foreach ($targets as $target) {
+                    // File download tokens are single-use. Include the target and file in the
+                    // identifier so every selected server receives its own signed URL.
+                    $token = $this->jwtService
+                        ->setExpiresAt(CarbonImmutable::now()->addMinutes(15))
+                        ->setUser($user)
+                        ->setClaims([
+                            'file_path' => rawurldecode($sourcePath),
+                            'server_uuid' => $server->uuid,
+                        ])
+                        ->setScopes(JwtScope::FileDownload)
+                        ->handle($server->node, implode(':', [$user->id, $server->uuid, $target->uuid, $sourcePath]));
+
+                    $url = sprintf('%s/download/file?token=%s', $server->node->getConnectionAddress(), $token->toString());
                     $repository = $this->fileRepository->setServer($target);
                     $repository->pull($url, $directory, [
                         'filename' => $filename,
